@@ -1,0 +1,489 @@
+<script type="text/javascript">
+RED.nodes.registerType('MC Reads',{
+    category: 'MC protocol PLC',
+    color: '#b8b6a9',
+    defaults: {
+        name: { value:"" },
+        connection: { value:"", type:"MC PLC Connection", required:true },
+        outputFormat: { value: "json" },
+        cycleTime: { value: 1000, validate: RED.validators.number() },
+        errorHandling: { value: "throw" },
+        variables: { value: [] }
+    },
+    inputs: 0,
+    outputs: 1,
+    icon: "serial.svg",
+    label: function() {
+        return this.name || "MC Reads";
+    },
+
+    // 打开编辑器时准备变量列表
+    oneditprepare: function() {
+        // 确保国际化文本已加载，获取文本常量
+        var i18n = {
+            placeholder: {
+                address: this._("mc-reads.placeholder.address") || "Address",
+                notes: this._("mc-reads.placeholder.notes") || "Notes"
+            },
+            button: {
+                delete: this._("mc-reads.button.delete") || "Delete"
+            },
+            message: {
+                confirmClear: this._("mc-reads.message.confirmClear") || "Are you sure you want to clear all variables?",
+                validateError: this._("mc-reads.message.validateError") || "Please check variable name input, ensure all fields are correctly filled",
+                variableNameEmpty: this._("mc-reads.message.variableNameEmpty") || "Variable name cannot be empty",
+                noVariablesToExport: this._("mc-reads.message.noVariablesToExport") || "No variables to export",
+                variablesExported: this._("mc-reads.message.variablesExported") || "Variable list has been exported",
+                browserNotSupported: this._("mc-reads.message.browserNotSupported") || "Your browser does not support file download",
+                importSuccess: this._("mc-reads.message.importSuccess") || "Successfully imported __count__ variables",
+                importSuccessWithErrors: this._("mc-reads.message.importSuccessWithErrors") || "Successfully imported __count__ variables (some lines with errors were skipped)",
+                noValidData: this._("mc-reads.message.noValidData") || "No valid variable data found",
+                importFailed: this._("mc-reads.message.importFailed") || "Import failed: file format error",
+                lineFormatError: this._("mc-reads.message.lineFormatError") || "Line __line__ format error, skipped"
+            },
+            label: {
+                address: this._("mc-reads.label.address") || "Address",
+                notes: this._("mc-reads.label.notes") || "Notes"
+            }
+        };
+        
+        // 将i18n对象存储到节点实例中以便其他函数使用
+        this.i18nTexts = i18n;
+        // 初始化容器
+        var val = $("#node-input-variables").val();
+        var variables = [];
+        try {
+          variables = val ? JSON.parse(val) : [];
+        } catch(e) {}
+        $("#node-input-variables-container").empty();
+        (variables || []).forEach(function(variable) {
+          addVariableRow(variable, i18n);
+        });
+        updateZebraStripes();
+
+        // 挂载按钮事件
+        $("#add-variable").off("click").on("click", function() {
+          addVariableRow({ name: "", type: "" }, i18n);
+        });
+        
+        $("#clear-variables").off("click").on("click", function() {
+          if (confirm(i18n.message.confirmClear)) {
+            $("#node-input-variables-container").empty();
+            updateZebraStripes();
+          }
+        });
+        
+        $("#export-variables").off("click").on("click", function() {
+          exportVariablesToCSV(i18n);
+        });
+        
+        $("#import-variables").off("click").on("click", function() {
+          $("#import-file").click();
+        });
+        
+        $("#import-file").off("change").on("change", function() {
+          importVariablesFromCSV(this, i18n);
+        });
+    },
+
+    // 保存时校验变量名
+    // 如果有错误则不保存并提示用户
+    oneditsave: function() {
+        // 校验所有变量名输入框
+        var allValid = true;
+        var self = this;
+        $("#node-input-variables-container li").each(function() {
+          var nameInput = $(this).find("input:eq(0)");
+          if (!validateVariableName(nameInput, self.i18nTexts)) {
+            allValid = false;
+          }
+        });
+        
+        // 如果有校验失败的输入框，不保存并显示提示
+        if (!allValid) {
+          RED.notify(this.i18nTexts.message.validateError, "error");
+          return false; // 阻止保存
+        }
+        
+        // 保存列表内容
+        var variables = [];
+        $("#node-input-variables-container li").each(function() {
+          var name = $(this).find("input:eq(0)").val().trim();
+          var type = $(this).find("input:eq(1)").val().trim();
+          if (name) { // 只保存非空的变量名
+            variables.push({
+              name: name,
+              type: type
+            });
+          }
+        });
+        $("#node-input-variables").val(JSON.stringify(variables));
+    }
+});
+
+// 在表格中增加地址列
+function addVariableRow(variable, i18n) {
+  var row = $("<li style='margin:0; padding:8px 5px; border-bottom:1px solid #e0e0e0;'>");
+  
+  // 创建变量名输入框
+  var nameInput = $("<input type='text' style='height:1.8em; padding:5px; border:1px solid #ccc; width:45%; margin-right:5px;'>")
+    .val(variable.name || "")
+    .attr("placeholder", i18n.placeholder.address)
+    // 窗口失去焦点时校验输入的地址是否合法
+    .on("blur", function() {
+      validateVariableName($(this), i18n);
+    })
+    .on("input", function() {
+      // 输入时清除错误样式
+      if ($(this).val().trim() !== "") {
+        $(this).css({
+          'border-color': '#ccc',
+          'background-color': '#fff'
+        });
+        $(this).attr('title', '');
+      }
+    });
+  
+  // 创建类型输入框
+  var typeInput = $("<input type='text' style='height:1.8em; padding:5px; border:1px solid #ccc; width:35%; margin-right:5px;'>")
+    .val(variable.type || "")
+    .attr("placeholder", i18n.placeholder.notes);
+  
+  // 创建删除按钮
+  var deleteBtn = $("<button type='button' class='red-ui-button red-ui-button-small'>")
+    .html("<i class='fa fa-remove'></i> " + i18n.button.delete)
+    .on("click", function() { 
+      row.remove(); 
+      updateZebraStripes();
+    });
+  
+  row.append(nameInput).append(typeInput).append(deleteBtn);
+  $("#node-input-variables-container").append(row);
+  // 表格中有新的行增加后，为表格中的行更新斑马纹效果
+  updateZebraStripes();
+}
+
+// 更新斑马纹效果
+function updateZebraStripes() {
+  $("#node-input-variables-container li").each(function(index) {
+    if (index % 2 === 0) {
+      $(this).css('background-color', '#ffffff');
+    } else {
+      $(this).css('background-color', '#f9f9f9');
+    }
+  });
+}
+
+// 校验变量名输入框
+function validateVariableName(input, i18n) {
+  var value = input.val().trim();
+  var isValid = true;
+  var errorMsg = "";
+  
+  // 检查是否为空
+  if (value === "") {
+    isValid = false;
+    errorMsg = i18n.message.variableNameEmpty;
+  }
+  
+  // TODO: 在这里可以添加更多的PLC地址格式校验逻辑
+  // 例如：检查地址格式是否符合三菱PLC规范
+  
+  // 设置输入框样式
+  if (isValid) {
+    input.css({
+      'border-color': '#ccc',
+      'background-color': '#fff'
+    });
+    input.attr('title', ''); // 清除错误提示
+  } else {
+    input.css({
+      'border-color': '#d32f2f',
+      'background-color': '#ffebee'
+    });
+    input.attr('title', errorMsg); // 设置错误提示
+  }
+  
+  return isValid;
+}
+
+// 导出变量列表到CSV文件
+function exportVariablesToCSV(i18n) {
+  var variables = [];
+  $("#node-input-variables-container li").each(function() {
+    var name = $(this).find("input:eq(0)").val().trim();
+    var type = $(this).find("input:eq(1)").val().trim();
+    if (name) { // 只导出非空的变量名
+      variables.push(name + ";" + type);
+    }
+  });
+  
+  if (variables.length === 0) {
+    RED.notify(i18n.message.noVariablesToExport, "warn");
+    return;
+  }
+  
+  // 添加CSV头部
+  var csvContent = i18n.label.address + ";" + i18n.label.notes + "\n" + variables.join("\n");
+  
+  // 创建并下载文件
+  var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  var link = document.createElement("a");
+  if (link.download !== undefined) {
+    var url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", "mc_variables.csv");
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    RED.notify(i18n.message.variablesExported, "success");
+  } else {
+    RED.notify(i18n.message.browserNotSupported, "error");
+  }
+}
+
+// 从CSV文件导入变量列表
+function importVariablesFromCSV(fileInput, i18n) {
+  var file = fileInput.files[0];
+  if (!file) return;
+  
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      var content = e.target.result;
+      var lines = content.split(/[\r\n]+/);
+      var variables = [];
+      var hasError = false;
+      
+      // 跳过标题行（如果存在）
+      var startIndex = 0;
+      if (lines.length > 0 && (lines[0].includes(RED._("mc-reads.label.address")) || lines[0].includes("变量名") || lines[0].includes("name") || lines[0].includes("Address"))) {
+        startIndex = 1;
+      }
+      
+      for (var i = startIndex; i < lines.length; i++) {
+        var line = lines[i].trim();
+        if (line === "") continue;
+        
+        var fields = line.split(/[;\t]/); // 支持分号或制表符分隔
+        
+        if (fields.length >= 1) {
+          variables.push({
+            name: fields[0].trim(),
+            type: fields[1] ? fields[1].trim() : ""
+          });
+        } else {
+          hasError = true;
+          RED.notify(i18n.message.lineFormatError.replace("__line__", i + 1), "warn");
+        }
+      }
+      
+      if (variables.length > 0) {
+        // 清空现有列表
+        $("#node-input-variables-container").empty();
+        
+        // 添加导入的变量
+        variables.forEach(function(variable) {
+          addVariableRow(variable, i18n);
+        });
+        
+        updateZebraStripes();
+        var messageKey = hasError ? i18n.message.importSuccessWithErrors : i18n.message.importSuccess;
+        RED.notify(messageKey.replace("__count__", variables.length), "success");
+      } else {
+        RED.notify(i18n.message.noValidData, "error");
+      }
+    } catch (error) {
+      RED.notify(i18n.message.importFailed, "error");
+    }
+    
+    // 清空文件选择
+    fileInput.value = "";
+  };
+  
+  reader.readAsText(file, 'UTF-8');
+}
+</script>
+
+<script type="text/html" data-template-name="MC Reads">
+    <div class="form-row">
+        <label for="node-input-name" style="min-width: 120px;"><i class="fa fa-tag"></i> <span data-i18n="mc-reads.label.name">Name</span></label>
+        <input type="text" id="node-input-name" data-i18n="[placeholder]mc-reads.placeholder.name" placeholder="Name" style="width: 70%;">
+    </div>
+    <div class="form-row">
+        <label for="node-input-connection" style="min-width: 120px;"><i class="fa fa-link"></i> <span data-i18n="mc-reads.label.connection">Connection</span></label>
+        <input type="text" id="node-input-connection" data-i18n="[placeholder]mc-reads.placeholder.connection" placeholder="Connection" style="width: 70%;">
+    </div>
+    <div class="form-row">
+        <label for="node-input-outputFormat" style="min-width: 120px;"><i class="fa fa-sign-out"></i> <span data-i18n="mc-reads.label.outputFormat">Output Format</span></label>
+        <select id="node-input-outputFormat" style="width: 70%;">
+            <option value="json" data-i18n="mc-reads.option.json">JSON</option>
+            <option value="array" data-i18n="mc-reads.option.array">Array</option>
+        </select>
+    </div>
+    
+    <div class="form-row">
+        <label for="node-input-errorHandling" style="min-width: 120px;"><i class="fa fa-exclamation"></i> <span data-i18n="mc-reads.label.errorHandling">Error Handling</span></label>
+        <select id="node-input-errorHandling" style="width: 70%;">
+        <option value="throw" data-i18n="mc-reads.option.throw">Throw</option>           <!-- 抛出异常（默认） -->
+        <option value="msg" data-i18n="mc-reads.option.msg">Output to msg.error</option>         <!-- 输出到msg.error属性 -->
+        <!-- <option value="output2">Send to seperate output</option> -->
+      </select>
+    </div>
+    <div class="form-row">
+        <label for="node-input-cycleTime" style="min-width: 120px;"><i class="fa fa-clock-o"></i> <span data-i18n="mc-reads.label.cycleTime">Cycle Time (ms)</span></label>
+        <input type="number" id="node-input-cycleTime" data-i18n="[placeholder]mc-reads.placeholder.cycleTime" placeholder="1000" step="100" style="width: 20%;">
+    </div>
+    <div class="form-row" style="margin-bottom:0;">
+        <label><i class="fa fa-list"></i> <span data-i18n="mc-reads.label.addressList">Address list</span></label>
+    </div>
+    <div class="form-row node-input-variables-container-row" style="margin-bottom: 0px;">
+        <div id="node-input-variables-container-div" style="box-sizing: border-box; border-radius: 5px; height: 300px; padding: 0px; border: 1px solid #ccc; overflow-y:scroll;">
+            <ol id="node-input-variables-container" style="list-style-type:none; margin: 0;"></ol>
+        </div>
+    </div>
+    <div class="form-row">
+        <button id="add-variable" type="button" class="red-ui-button"><i class="fa fa-plus"></i> <span data-i18n="mc-reads.button.addAddress">Add address</span></button>
+        <button id="clear-variables" type="button" class="red-ui-button" style="margin-left: 90px;"><i class="fa fa-trash-o"></i> <span data-i18n="mc-reads.button.clear">Clear</span></button>
+        <button id="export-variables" type="button" class="red-ui-button" style="margin-left: 0px; float: right;"><i class="fa fa-upload"></i> <span data-i18n="mc-reads.button.export">Export</span></button>
+        <button id="import-variables" type="button" class="red-ui-button" style="float: right;"><i class="fa fa-download"></i> <span data-i18n="mc-reads.button.import">Import</span></button>
+        <!-- 这个 input 用于选择要导入的 CSV 文件 -->
+        <input type="file" id="import-file" accept=".csv" style="display: none;" />
+    </div>
+    <!-- 这个 input 用于和 Node-RED 的属性系统同步 -->
+    <input type="hidden" id="node-input-variables">
+
+</script>
+
+<script type="text/html" data-help-name="MC Reads">
+    <p>A node that cyclically reads data from MITSUBISHI PLCs using the MC Protocol over Ethernet.</p>
+
+    <h3>Details</h3>
+    <p>This node continuously reads data from specified PLC addresses at a configured interval. 
+       It requires a configured MC PLC Connection to communicate with the PLC.</p>
+
+    <h3>Configuration</h3>
+    <dl class="message-properties">
+        <dt>Connection <span class="property-type">MC PLC Connection</span></dt>
+        <dd>The PLC connection configuration node that defines the target PLC parameters (IP, port, protocol settings).</dd>
+
+        <dt>Output Format <span class="property-type">string</span></dt>
+        <dd>
+            <ul>
+                <li><code>JSON</code> - Returns a single object with address-value pairs: <code>{"D100": 1234, "M1": true}</code></li>
+                <li><code>Array</code> - Returns an array of objects, one per address: <code>[{"D100": 1234}, {"M1": true}]</code></li>
+            </ul>
+        </dd>
+
+        <dt>Cycle Time (ms) <span class="property-type">number</span></dt>
+        <dd>Interval in milliseconds between read operations. Default is 1000ms (1 second). Minimum recommended value is 100ms.</dd>
+
+        <dt>Error Handling <span class="property-type">string</span></dt>
+        <dd>
+            <ul>
+                <li><code>Throw</code> - Throws an error and stops the flow when read fails</li>
+                <li><code>Output to msg.error</code> - Continues operation and includes error details in msg.error property</li>
+            </ul>
+        </dd>
+
+        <dt>Address List <span class="property-type">array</span></dt>
+        <dd>List of PLC addresses to read. Each entry contains:
+            <ul>
+                <li><strong>Address</strong> - PLC memory address (e.g., D100, M1, X10, Y20)</li>
+                <li><strong>Notes</strong> - Optional description for documentation purposes</li>
+            </ul>
+        </dd>
+    </dl>
+
+    <h3>Supported Address Formats</h3>
+    <p>The node supports standard MITSUBISHI PLC addressing:</p>
+    <ul>
+        <li><code>D100</code> - Single data register</li>
+        <li><code>D100,10</code> - Multiple consecutive registers (D100 to D109)</li>
+        <li><code>M1</code> - Single bit device</li>
+        <li><code>M1,8</code> - Multiple consecutive bits</li>
+        <li><code>X10</code> - Input relay</li>
+        <li><code>Y20</code> - Output relay</li>
+        <li><code>S4</code> - Step relay</li>
+    </ul>
+
+    <h3>Outputs</h3>
+    <dl class="message-properties">
+        <dt>payload <span class="property-type">object | array</span></dt>
+        <dd>The read values from the PLC in the format specified by Output Format setting.</dd>
+
+        <dt>timestamp <span class="property-type">number</span></dt>
+        <dd>Timestamp when the read operation was completed (in milliseconds since epoch).</dd>
+
+        <dt>topic <span class="property-type">string</span></dt>
+        <dd>Always set to "mc-read" to identify messages from this node.</dd>
+
+        <dt>error <span class="property-type">string</span></dt>
+        <dd>Error message when Error Handling is set to "Output to msg.error" and a read operation fails.</dd>
+    </dl>
+
+    <h3>Features</h3>
+    <ul>
+        <li><strong>Automatic Reconnection</strong> - Automatically reconnects when PLC connection is lost</li>
+        <li><strong>CSV Import/Export</strong> - Easily manage large address lists through CSV files</li>
+        <li><strong>Real-time Status</strong> - Node status indicates current connection state</li>
+        <li><strong>Input Validation</strong> - Validates address formats before saving configuration</li>
+        <li><strong>Flexible Output</strong> - Choose between JSON object or array output formats</li>
+    </ul>
+
+    <h3>Status Indicators</h3>
+    <ul>
+        <li><span style="color: green;">●</span> <strong>Connected</strong> - Successfully reading data from PLC</li>
+        <li><span style="color: red;">●</span> <strong>Disconnected</strong> - No connection to PLC, attempting to reconnect</li>
+        <li><span style="color: orange;">●</span> <strong>Connecting</strong> - Attempting to establish connection with PLC</li>
+        <li><span style="color: gray;">●</span> <strong>No Connection</strong> - No connection configuration assigned</li>
+    </ul>
+
+    <h3>CSV File Format</h3>
+    <p>When importing/exporting address lists, use this CSV format:</p>
+    <pre>变量名;类型
+D100;Temperature Sensor
+M1;Start Signal
+Y10;Output Relay</pre>
+    <p>The file should be saved with UTF-8 encoding and use semicolon (;) or tab as separators.</p>
+
+    <h3>Examples</h3>
+    <h4>JSON Output Format:</h4>
+    <pre>{
+  "payload": {
+    "D100": 1234,
+    "M1": true,
+    "D200,4": [100, 200, 300, 400]
+  },
+  "timestamp": 1643723400000,
+  "topic": "mc-read"
+}</pre>
+
+    <h4>Array Output Format:</h4>
+    <pre>{
+  "payload": [
+    {"D100": 1234},
+    {"M1": true},
+    {"D200,4": [100, 200, 300, 400]}
+  ],
+  "timestamp": 1643723400000,
+  "topic": "mc-read"
+}</pre>
+
+    <h3>Troubleshooting</h3>
+    <ul>
+        <li><strong>Connection Issues</strong> - Verify PLC IP address, port, and network connectivity</li>
+        <li><strong>Read Timeouts</strong> - Increase cycle time or check PLC response capability</li>
+        <li><strong>Invalid Addresses</strong> - Ensure address format matches PLC memory map</li>
+        <li><strong>Performance Issues</strong> - Reduce number of addresses or increase cycle time</li>
+    </ul>
+
+    <h3>Notes</h3>
+    <ul>
+        <li>This node requires a valid MC PLC Connection configuration</li>
+        <li>Minimum recommended cycle time is 100ms to avoid overloading the PLC</li>
+        <li>Large address lists may impact performance - consider splitting across multiple nodes</li>
+        <li>The node automatically handles connection recovery and retry logic</li>
+    </ul>
+</script>
