@@ -1,0 +1,332 @@
+<script type="text/javascript">
+    RED.nodes.registerType('MC PLC Connection',{
+        category: 'config',
+        defaults: {
+          name: { value: "" },
+          host: { value: "192.168.1.18", required:true },
+          port: { value: 5551, required:true, validate:RED.validators.number() },
+          protocol: { value: "TCP" },
+          frame: { value: "1E" },
+          plcType: { value: "Q" },
+          communication: { value: "binary" },
+        //   PLCStation: { value: 0 },
+        //   PCStation: { value: undefined },
+        //   PLCModuleNo: { value: undefined },
+        //   network: { value: undefined },
+          octalInputOutput: { value: "decimal" },
+          timeout: { value: 1000 },
+        },
+        label: function() {
+            return this.name || this.host + ":" + this.port || "MC PLC Connection";
+        }
+    });
+</script>
+
+<script type="text/html" data-template-name="MC PLC Connection">
+    <div class="form-row">
+        <label for="node-config-input-name" style="min-width: 120px;"><i class="fa fa-tag"></i> <span data-i18n="mc-plc-connection.label.name">Name</span></label>
+        <input type="text" id="node-config-input-name" data-i18n="[placeholder]mc-plc-connection.placeholder.name" placeholder="Connection Name">
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-host" style="min-width: 120px;"><i class="fa fa-server"></i> <span data-i18n="mc-plc-connection.label.host">Host</span></label>
+        <input type="text" id="node-config-input-host" data-i18n="[placeholder]mc-plc-connection.placeholder.host" placeholder="192.168.1.18">
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-port" style="min-width: 120px;"><i class="fa fa-plug"></i> <span data-i18n="mc-plc-connection.label.port">Port</span></label>
+        <input type="number" id="node-config-input-port" data-i18n="[placeholder]mc-plc-connection.placeholder.port" placeholder="5551" min="1" max="65535">
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-protocol" style="min-width: 120px;"><i class="fa fa-exchange"></i> <span data-i18n="mc-plc-connection.label.protocol">Protocol</span></label>
+        <select id="node-config-input-protocol">
+            <option value="TCP" data-i18n="mc-plc-connection.option.tcp">TCP</option>
+            <option value="UDP" data-i18n="mc-plc-connection.option.udp">UDP(Not Supported)</option>
+        </select>
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-frame" style="min-width: 120px;"><i class="fa fa-cube"></i> <span data-i18n="mc-plc-connection.label.frame">Frame</span></label>
+        <select id="node-config-input-frame">
+            <option value="1E" data-i18n="mc-plc-connection.option.frame1E">1E Frame</option>
+            <option value="3E" data-i18n="mc-plc-connection.option.frame3E">3E Frame</option>
+            <option value="4E" data-i18n="mc-plc-connection.option.frame4E">4E Frame</option>
+        </select>
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-plcType" style="min-width: 120px;"><i class="fa fa-microchip"></i> <span data-i18n="mc-plc-connection.label.plcType">PLC Type</span></label>
+        <select id="node-config-input-plcType">
+            <option value="Q" data-i18n="mc-plc-connection.option.qSeries">Q Series</option>
+            <option value="L" data-i18n="mc-plc-connection.option.lSeries">L Series</option>
+            <option value="QnA" data-i18n="mc-plc-connection.option.qnaSeries">QnA Series</option>
+            <option value="iQ-R" data-i18n="mc-plc-connection.option.iqrSeries">iQ-R Series</option>
+            <option value="iQ-F" data-i18n="mc-plc-connection.option.iqfSeries">iQ-F Series</option>
+        </select>
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-communication" style="min-width: 120px;"><i class="fa fa-font"></i> <span data-i18n="mc-plc-connection.label.communication">Mode</span></label>
+        <select id="node-config-input-communication">
+            <option value="binary" data-i18n="mc-plc-connection.option.binary">Binary</option>
+            <option value="ascii" data-i18n="mc-plc-connection.option.ascii">ASCII</option>
+        </select>
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-octalInputOutput" style="min-width: 120px;"><i class="fa fa-hashtag"></i> <span data-i18n="mc-plc-connection.label.octalInputOutput">Octal/Decimal</span></label>
+        <select id="node-config-input-octalInputOutput">
+            <option value="decimal" data-i18n="mc-plc-connection.option.decimal">Decimal</option>
+            <option value="octal" data-i18n="mc-plc-connection.option.octal">Octal</option>
+        </select>
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-timeout" style="min-width: 120px;"><i class="fa fa-clock-o"></i> <span data-i18n="mc-plc-connection.label.timeout">Timeout (ms)</span></label>
+        <input type="number" id="node-config-input-timeout" data-i18n="[placeholder]mc-plc-connection.placeholder.timeout" placeholder="1000" step="100" style="width: 20%;">
+    </div>
+</script>
+        <!-- </select>
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-plcType" style="min-width: 120px;"><i class="fa fa-microchip"></i> PLC Type</label>
+        <select id="node-config-input-plcType">
+            <option value="Q">Q Series</option>
+            <option value="L">L Series</option>
+            <option value="QnA">QnA Series</option>
+            <option value="iQ-R">iQ-R Series</option>
+            <option value="iQ-F">iQ-F Series</option>
+        </select>
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-communication" style="min-width: 120px;"><i class="fa fa-font"></i> Mode</label>
+        <select id="node-config-input-communication">
+            <option value="binary">Binary</option>
+            <option value="ascii">ASCII</option>
+        </select>
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-octalInputOutput" style="min-width: 140px;"><i class="fa fa-binary"></i> I/O Addressing base</label>
+        <select id="node-config-input-octalInputOutput">
+            <option value="decimal">Decimal</option>
+            <option value="octal">Octal</option>
+        </select>
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-PLCStation"><i class="fa fa-sitemap"></i> PLC Station</label>
+        <input type="number" id="node-config-input-PLCStation" placeholder="0" min="0" max="255">
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-PCStation"><i class="fa fa-desktop"></i> PC Station</label>
+        <input type="number" id="node-config-input-PCStation" placeholder="255" min="0" max="255">
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-PLCModuleNo"><i class="fa fa-puzzle-piece"></i> PLC Module No</label>
+        <input type="number" id="node-config-input-PLCModuleNo" placeholder="0" min="0" max="255">
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-network"><i class="fa fa-network-wired"></i> Network</label>
+        <input type="number" id="node-config-input-network" placeholder="0" min="0" max="255">
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-octalInputOutput"><i class="fa fa-binary"></i> Octal I/O</label>
+        <input type="checkbox" id="node-config-input-octalInputOutput" style="width:auto;margin-left:10px;">
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-timeout" style="min-width: 120px;"><i class="fa fa-clock-o"></i> Timeout (ms)</label>
+        <input type="number" id="node-config-input-timeout" placeholder="1000" step="100" style="width: 20%;">
+    </div>
+</script> -->
+
+<script type="text/html" data-help-name="MC PLC Connection">
+    <p>Configuration node for establishing connections to MITSUBISHI PLCs using the MC Protocol over Ethernet.</p>
+
+    <h3>Connection Settings</h3>
+    <dl class="message-properties">
+        <dt>Name <span class="property-type">string</span></dt>
+        <dd>Optional descriptive name for this connection configuration. If not specified, it will default to "host:port".</dd>
+
+        <dt>Host <span class="property-type">string</span></dt>
+        <dd>IP address of the target PLC. Must be a valid IPv4 address (e.g., 192.168.1.18).</dd>
+
+        <dt>Port <span class="property-type">number</span></dt>
+        <dd>TCP port number for MC Protocol communication. Common values:
+            <ul>
+                <li><code>5551</code> - Default for most MITSUBISHI PLCs</li>
+                <li><code>1025</code> - Alternative port used by some models</li>
+                <li><code>5007</code> - Used by some FX series PLCs</li>
+            </ul>
+        </dd>
+
+        <dt>Protocol <span class="property-type">string</span></dt>
+        <dd>Communication protocol type. Currently only TCP is supported. UDP support is planned for future releases.</dd>
+
+        <dt>Frame <span class="property-type">string</span></dt>
+        <dd>MC Protocol frame format:
+            <ul>
+                <li><code>1E Frame</code> - Older format, compatible with legacy systems</li>
+                <li><code>3E Frame</code> - Standard format, recommended for most applications</li>
+                <li><code>4E Frame</code> - Extended format with additional features</li>
+            </ul>
+        </dd>
+
+        <dt>PLC Type <span class="property-type">string</span></dt>
+        <dd>Target PLC series for optimal compatibility:
+            <ul>
+                <li><code>Q Series</code> - Q00J, Q00, Q01, Q02(H), Q06H, Q12H, Q25H series</li>
+                <li><code>L Series</code> - L02, L06, L26, L60 series</li>
+                <li><code>QnA Series</code> - QnA, QnAS, QnACPU series</li>
+                <li><code>iQ-R Series</code> - R00, R01, R02, R04, R08, R16, R32, R120 series</li>
+                <li><code>iQ-F Series</code> - FX5 series and newer</li>
+            </ul>
+        </dd>
+
+        <dt>Mode <span class="property-type">string</span></dt>
+        <dd>Communication data format:
+            <ul>
+                <li><code>Binary</code> - More efficient, recommended for most applications</li>
+                <li><code>ASCII</code> - Human-readable format, useful for debugging</li>
+            </ul>
+        </dd>
+
+        <dt>I/O Addressing Base <span class="property-type">string</span></dt>
+        <dd>Number base for input/output addressing:
+            <ul>
+                <li><code>Decimal</code> - Standard decimal addressing (X0, X1, X2...)</li>
+                <li><code>Octal</code> - Octal addressing (X0, X1...X7, X10, X11...)</li>
+            </ul>
+        </dd>
+
+        <dt>Timeout (ms) <span class="property-type">number</span></dt>
+        <dd>Connection and communication timeout in milliseconds. Recommended values:
+            <ul>
+                <li><code>1000-2000ms</code> - Fast local networks</li>
+                <li><code>3000-5000ms</code> - Standard networks</li>
+                <li><code>5000-10000ms</code> - Slow or wireless networks</li>
+            </ul>
+        </dd>
+    </dl>
+
+    <h3>Supported PLC Models</h3>
+    <p>This connection configuration supports a wide range of MITSUBISHI PLCs:</p>
+    
+    <h4>Q Series</h4>
+    <ul>
+        <li>Q00JCPU, Q00CPU, Q01CPU</li>
+        <li>Q02(H)CPU, Q06HCPU, Q12HCPU, Q25HCPU</li>
+        <li>QnUCPU series with Ethernet modules</li>
+    </ul>
+
+    <h4>L Series</h4>
+    <ul>
+        <li>L02CPU, L06CPU, L26CPU, L60CPU</li>
+        <li>Built-in Ethernet or add-on Ethernet modules</li>
+    </ul>
+
+    <h4>iQ-R Series</h4>
+    <ul>
+        <li>R00CPU, R01CPU, R02CPU, R04CPU</li>
+        <li>R08CPU, R16CPU, R32CPU, R120CPU</li>
+        <li>Built-in Ethernet interface</li>
+    </ul>
+
+    <h4>iQ-F Series</h4>
+    <ul>
+        <li>FX5U, FX5UC CPUs with FX5-ENET/IP or FX5-ENET modules</li>
+    </ul>
+
+    <h3>Network Requirements</h3>
+    <ul>
+        <li><strong>PLC Ethernet Module</strong> - PLC must have an Ethernet communication module installed and configured</li>
+        <li><strong>MC Protocol Enabled</strong> - MC Protocol must be enabled in the PLC's network configuration</li>
+        <li><strong>Network Connectivity</strong> - Node-RED server must have network access to the PLC's IP address</li>
+        <li><strong>Firewall Settings</strong> - Ensure the specified port is not blocked by firewalls</li>
+    </ul>
+
+    <h3>Configuration Steps</h3>
+    <ol>
+        <li><strong>PLC Setup</strong>:
+            <ul>
+                <li>Install and configure Ethernet module in PLC</li>
+                <li>Set static IP address and subnet mask</li>
+                <li>Enable MC Protocol communication</li>
+                <li>Configure port number (default 5551)</li>
+            </ul>
+        </li>
+        <li><strong>Node-RED Setup</strong>:
+            <ul>
+                <li>Enter PLC's IP address in Host field</li>
+                <li>Match port number with PLC configuration</li>
+                <li>Select appropriate PLC type and frame format</li>
+                <li>Test connection using MC Reads node</li>
+            </ul>
+        </li>
+    </ol>
+
+    <h3>Connection Status</h3>
+    <p>The connection status is indicated in nodes that use this configuration:</p>
+    <ul>
+        <li><span style="color: green;">●</span> <strong>Connected</strong> - Successfully connected to PLC</li>
+        <li><span style="color: red;">●</span> <strong>Disconnected</strong> - Connection lost, attempting reconnection</li>
+        <li><span style="color: orange;">●</span> <strong>Connecting</strong> - Attempting to establish connection</li>
+        <li><span style="color: gray;">●</span> <strong>Error</strong> - Configuration or network error</li>
+    </ul>
+
+    <h3>Troubleshooting</h3>
+    <h4>Common Connection Issues:</h4>
+    <ul>
+        <li><strong>Connection Timeout</strong>
+            <ul>
+                <li>Verify PLC IP address and network connectivity</li>
+                <li>Check if MC Protocol is enabled on PLC</li>
+                <li>Ensure port number matches PLC configuration</li>
+                <li>Check firewall settings on both ends</li>
+            </ul>
+        </li>
+        <li><strong>Frame Format Errors</strong>
+            <ul>
+                <li>Try different frame formats (1E, 3E, 4E)</li>
+                <li>Verify PLC model compatibility</li>
+                <li>Check PLC documentation for supported formats</li>
+            </ul>
+        </li>
+        <li><strong>Addressing Issues</strong>
+            <ul>
+                <li>Verify I/O addressing base setting</li>
+                <li>Check if addresses exist in PLC memory</li>
+                <li>Ensure proper device type selection</li>
+            </ul>
+        </li>
+    </ul>
+
+    <h4>Performance Optimization:</h4>
+    <ul>
+        <li>Use Binary mode for better performance</li>
+        <li>Adjust timeout based on network conditions</li>
+        <li>Group consecutive addresses for batch reading</li>
+        <li>Consider using 3E frame for modern PLCs</li>
+    </ul>
+
+    <h3>Security Considerations</h3>
+    <ul>
+        <li>MC Protocol provides no built-in security - use secure networks</li>
+        <li>Consider VPN for remote connections</li>
+        <li>Implement network segmentation for critical systems</li>
+        <li>Monitor and log PLC communications</li>
+    </ul>
+
+    <h3>Examples</h3>
+    <h4>Typical Q Series Configuration:</h4>
+    <ul>
+        <li>Host: 192.168.1.100</li>
+        <li>Port: 5551</li>
+        <li>Frame: 3E Frame</li>
+        <li>PLC Type: Q Series</li>
+        <li>Mode: Binary</li>
+        <li>Timeout: 2000ms</li>
+    </ul>
+
+    <h4>FX5 Series Configuration:</h4>
+    <ul>
+        <li>Host: 192.168.1.50</li>
+        <li>Port: 1025</li>
+        <li>Frame: 1E Frame</li>
+        <li>PLC Type: iQ-F Series</li>
+        <li>Mode: Binary</li>
+        <li>I/O Addressing: Decimal</li>
+        <li>Timeout: 3000ms</li>
+    </ul>
+</script>
