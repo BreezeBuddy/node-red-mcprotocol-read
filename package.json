@@ -1,0 +1,37 @@
+{
+  "name": "@yihengnp/node-red-mcprotocol-read",
+  "version": "0.0.5",
+  "description": "A simple node in Node-Red to read data from PLC that supports mcprotocol over Ethernet.",
+  "dependencies": {
+    "mcprotocol": "^0.1.2"
+  },
+  "keywords": [
+    "node-red",
+    "MITSUBISHI",
+    "mcprotocol",
+    "MELSEC",
+    "plc"
+  ],
+  "node-red" : {
+    "version": ">=2.0.0",
+    "nodes": {
+      "mcReads": "nodes/reads.js",
+      "mcConnection": "nodes/connection.js"
+    }
+  },
+  "homepage": "https://github.com/BreezeBuddy/node-red-mcprotocol-read#readme",
+  "bugs": {
+    "url": "https://github.com/BreezeBuddy/node-red-mcprotocol-read/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/BreezeBuddy/node-red-mcprotocol-read.git"
+  },
+  "license": "MIT",
+  "author": "YIHENG XIE",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}
