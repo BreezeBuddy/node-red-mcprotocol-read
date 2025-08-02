@@ -2,7 +2,7 @@
 
 这是一个`Node-Red`组件，为使用`MC Protocol`并通过以太网进行通信的`PLC`而开发。单个节点支持一次性读取`PLC`中多个地址的数据。
 
-[![npm version](https://badge.fury.io/js/%40yihengnp%2Fnode-red-mcprotocol-read.svg)](https://badge.fury.io/js/%40yihengnp%2Fnode-red-mcprotocol-read) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ---
 
@@ -103,4 +103,4 @@ npm install @yihengnp/node-red-mcprotocol-read
 
 ## 相关项目
 
-- [mcprotocol](https://github.com/plcpeople/nodeMCProtocol) - 此组件使用了该库以实现与 PLC 的通信
+- [mcprotocol](https://github.com/plcpeople/mcprotocol) - 此组件使用了该库以实现与 PLC 的通信

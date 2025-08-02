@@ -28,9 +28,8 @@
     "url": "git+https://github.com/BreezeBuddy/node-red-mcprotocol-read.git"
   },
   "license": "MIT",
-  "author": "YIHENG XIE",
+  "author": "YIHENG XIE <dermotxie.297@gmail.com>",
   "type": "commonjs",
-  "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   }

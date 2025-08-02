@@ -4,7 +4,7 @@
 
 This is a `Node-RED` component designed for PLCs that communicate over Ethernet using the `MC Protocol`. A single node supports reading data from multiple PLC addresses at once.
 
-[![npm version](https://badge.fury.io/js/%40yihengnp%2Fnode-red-mcprotocol-read.svg)](https://badge.fury.io/js/%40yihengnp%2Fnode-red-mcprotocol-read) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ---
 
@@ -107,4 +107,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Related Projects
 
-- [mcprotocol](https://github.com/plcpeople/nodeMCProtocol) - This component uses this library to communicate with PLCs
+- [mcprotocol](https://github.com/plcpeople/mcprotocol) - This component uses this library to communicate with PLCs
