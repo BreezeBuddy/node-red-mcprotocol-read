@@ -1,0 +1,150 @@
+[
+    {
+        "id": "c041bafb2abbdc07",
+        "type": "tab",
+        "label": "Flow 1",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "845f25175b3fbe85",
+        "type": "MC Reads",
+        "z": "c041bafb2abbdc07",
+        "name": "",
+        "connection": "86e306519919fbcc",
+        "outputFormat": "json",
+        "cycleTime": 1000,
+        "errorHandling": "msg",
+        "variables": "[{\"name\":\"D8470.0,8\",\"type\":\"\"},{\"name\":\"D8470.8,8\",\"type\":\"\"}]",
+        "x": 280,
+        "y": 180,
+        "wires": [
+            [
+                "49689959c4fe26d4",
+                "afa1e03589bc0407"
+            ]
+        ]
+    },
+    {
+        "id": "49689959c4fe26d4",
+        "type": "debug",
+        "z": "c041bafb2abbdc07",
+        "name": "msg.payload",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 530,
+        "y": 180,
+        "wires": []
+    },
+    {
+        "id": "64d6d59524c4a11f",
+        "type": "MC Reads",
+        "z": "c041bafb2abbdc07",
+        "d": true,
+        "name": "",
+        "connection": "86e306519919fbcc",
+        "outputFormat": "json",
+        "cycleTime": 1000,
+        "errorHandling": "throw",
+        "variables": "[{\"name\":\"D8471.0,8\",\"type\":\"\"}]",
+        "x": 280,
+        "y": 360,
+        "wires": [
+            [
+                "def20f787bfd9c57",
+                "5b8a93ae280e4eba"
+            ]
+        ]
+    },
+    {
+        "id": "def20f787bfd9c57",
+        "type": "debug",
+        "z": "c041bafb2abbdc07",
+        "name": "msg.payload",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 530,
+        "y": 360,
+        "wires": []
+    },
+    {
+        "id": "afa1e03589bc0407",
+        "type": "debug",
+        "z": "c041bafb2abbdc07",
+        "name": "msg.error",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "error",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 520,
+        "y": 220,
+        "wires": []
+    },
+    {
+        "id": "5b8a93ae280e4eba",
+        "type": "debug",
+        "z": "c041bafb2abbdc07",
+        "name": "msg.error",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "error",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 520,
+        "y": 400,
+        "wires": []
+    },
+    {
+        "id": "a8af825b99efdc30",
+        "type": "comment",
+        "z": "c041bafb2abbdc07",
+        "name": "Supports reading multiple addresses in one node.",
+        "info": "",
+        "x": 400,
+        "y": 140,
+        "wires": []
+    },
+    {
+        "id": "6b3033526f16d8e5",
+        "type": "comment",
+        "z": "c041bafb2abbdc07",
+        "name": "You can use multiple nodes for one connection.",
+        "info": "",
+        "x": 400,
+        "y": 320,
+        "wires": []
+    },
+    {
+        "id": "86e306519919fbcc",
+        "type": "MC PLC Connection",
+        "name": "",
+        "host": "192.168.1.18",
+        "port": 5551,
+        "protocol": "TCP",
+        "frame": "1E",
+        "plcType": "Q",
+        "communication": "binary",
+        "octalInputOutput": "decimal",
+        "timeout": 1000
+    }
+]
