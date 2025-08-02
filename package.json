@@ -1,6 +1,6 @@
 {
   "name": "@yihengnp/node-red-mcprotocol-read",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "A simple node in Node-Red to read data from PLC that supports mcprotocol over Ethernet.",
   "dependencies": {
     "mcprotocol": "^0.1.2"
@@ -15,7 +15,7 @@
     "MELSEC",
     "plc"
   ],
-  "node-red" : {
+  "node-red": {
     "version": ">=2.0.0",
     "nodes": {
       "mcReads": "nodes/reads.js",
