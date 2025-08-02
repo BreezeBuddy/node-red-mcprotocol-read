@@ -2,7 +2,7 @@
 
 这是一个`Node-Red`组件，为使用`MC Protocol`并通过以太网进行通信的`PLC`而开发。单个节点支持一次性读取`PLC`中多个地址的数据。
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![npm version](https://badge.fury.io/js/@yihengnp%2Fnode-red-mcprotocol-read.svg)](https://badge.fury.io/js/@yihengnp%2Fnode-red-mcprotocol-read) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ---
 
@@ -22,6 +22,7 @@
 该程序运行于`Node-Red`中。因此，需要安装`Node-Red`及其运行环境`Node.js`。
 
 ### 支持的PLC型号
+
 使用了`plcpeople/mcprotocol`库进行通信。该库支持的 PLC 可用。受限于手上的设备，目前仅在`AMX-FX3U-M26MR`系列型号的 PLC 中进行了测试。
 
 ## 安装
